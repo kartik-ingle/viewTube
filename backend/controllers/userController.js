@@ -14,6 +14,13 @@ exports.getUserById = async (req, res) => {
 
         res.json({ user });
     } catch (error) {
+        console.error('Get user error:', error);
+
+        // Handle invalid MongoDB ObjectId
+        if (error.kind === 'ObjectId') {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
         res.status(500).json({ message: 'Error fetching user' });
     }
 };

@@ -64,7 +64,7 @@ exports.getAllVideos = async (req, res) => {
         }
 
         const videos = await Video.find(query)
-            .populate('uploadedBy', 'username channelName profilePicture')
+            .populate('uploadedBy', 'username channelName profilePicture _id')
             .sort({ createdAt: -1 })
             .limit(limit * 1)
             .skip((page - 1) * limit);
@@ -87,7 +87,7 @@ exports.getAllVideos = async (req, res) => {
 exports.getVideoById = async (req, res) => {
     try {
         const video = await Video.findById(req.params.id)
-            .populate('uploadedBy', 'username channelName profilePicture subscribers');
+            .populate('uploadedBy', 'username channelName profilePicture subscribers _id');
 
         if (!video) {
             return res.status(404).json({ message: 'Video not found' });
@@ -219,7 +219,7 @@ exports.deleteVideo = async (req, res) => {
 exports.getVideosByUser = async (req, res) => {
     try {
         const videos = await Video.find({ uploadedBy: req.params.userId, isPublished: true })
-            .populate('uploadedBy', 'username channelName profilePicture')
+            .populate('uploadedBy', 'username channelName profilePicture _id')
             .sort({ createdAt: -1 });
 
         res.json({ videos });

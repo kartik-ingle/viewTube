@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import Playlists from './pages/Playlists';
+import PlaylistPage from './pages/PlaylistPage';
 
 // Layout Components
 import Navbar from './components/common/Navbar';
@@ -17,6 +19,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import EditProfile from './pages/EditProfile';
 import ErrorPage from './pages/ErrorPage';
+import Trending from './pages/Trending';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -84,6 +87,9 @@ function App() {
                         <Route path="/channel/:id" element={<Channel />} />
                         <Route path="/history" element={<History />} />
                         <Route path="/profile/edit" element={<EditProfile />} />
+                        <Route path="/trending" element={<Trending />} />
+                        <Route path="/playlists" element={<Playlists />} />
+                        <Route path="/playlist/:id" element={<PlaylistPage />} />
 
                         {/* 404 Page */}
                         <Route path="*" element={<ErrorPage />} />

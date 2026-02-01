@@ -13,6 +13,7 @@ const videoRoutes = require('./routes/videoRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const userRoutes = require('./routes/userRoutes');
 const historyRoutes = require('./routes/historyRoutes');
+const playlistRoutes = require('./routes/playlistRoutes');
 
 // Initialize express app
 const app = express();
@@ -43,6 +44,7 @@ app.use('/api/videos', videoRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/history', historyRoutes);
+app.use('/api/playlists', playlistRoutes);
 
 // Test route
 app.get('/', (req, res) => {

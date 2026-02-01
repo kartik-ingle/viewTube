@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, TrendingUp, History, Video, User, LogOut } from 'lucide-react';
+import { Home, TrendingUp, History, Video, User, ListVideo } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -13,6 +13,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     const authMenuItems = [
         { label: 'History', path: '/history', icon: History },
+        { label: 'Playlists', path: '/playlists', icon: ListVideo },
         { label: 'Your Videos', path: `/channel/${user?.id}`, icon: Video },
     ];
 
