@@ -104,7 +104,7 @@ const Upload = () => {
     };
 
     return (
-        <div className="max-w-5xl mx-auto p-4 sm:p-8 animate-in fade-in duration-500">
+        <div className="max-w-5xl mx-auto p-4 sm:p-8 pb-3 animate-in fade-in duration-500">
             <div className="flex items-center gap-4 mb-8">
                 <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
                     <UploadIcon className="text-primary" size={28} />

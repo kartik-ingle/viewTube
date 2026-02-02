@@ -46,10 +46,12 @@ const VideoPage = () => {
             setSubscribersCount(videoData.uploadedBy?.subscribers?.length || 0);
 
             if (user) {
-                setIsLiked(videoData.likes?.includes(user.id) || false);
-                setIsDisliked(videoData.dislikes?.includes(user.id) || false);
+                const userId = user.id || user._id; // Handle both potential ID properties
+                setIsLiked(videoData.likes?.some(id => id.toString() === userId.toString()) || false);
+                setIsDisliked(videoData.dislikes?.some(id => id.toString() === userId.toString()) || false);
+                // uploadedBy.subscribers is an array of IDs based on our backend logic analysis
                 setIsSubscribed(
-                    videoData.uploadedBy?.subscribers?.includes(user.id) || false
+                    videoData.uploadedBy?.subscribers?.some(id => id.toString() === userId.toString()) || false
                 );
             }
         } catch (error) {
@@ -203,7 +205,7 @@ const VideoPage = () => {
     const isOwner = user?.id === video.uploadedBy?.id;
 
     return (
-        <div className="max-w-[1920px] mx-auto px-0 sm:px-4 lg:px-6 py-0 sm:py-6 animate-in fade-in">
+        <div className="max-w-[1920px] mx-auto px-0 sm:px-4 lg:px-6 py-0 sm:py-6 pb-3 animate-in fade-in">
             <div className="flex flex-col xl:flex-row gap-6">
                 {/* Main Video Section */}
                 <div className="flex-1 min-w-0">

@@ -1,14 +1,14 @@
 import VideoCard from './VideoCard';
-import Loading from '../common/Loading';
+import VideoGridSkeleton from '../skeletons/VideoGridSkeleton';
 
 const VideoGrid = ({ videos, loading }) => {
     if (loading) {
-        return <Loading />;
+        return <VideoGridSkeleton />;
     }
 
     if (!videos || videos.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[400px] text-center px-4">
+            <div className="flex flex-col items-center justify-center min-h-[400px] text-center px-4 animate-in fade-in">
                 <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-4">
                     <svg
                         className="w-10 h-10 text-gray-600"
@@ -33,7 +33,7 @@ const VideoGrid = ({ videos, loading }) => {
     }
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-4 gap-y-8 sm:gap-x-4 sm:gap-y-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-x-4 gap-y-8 sm:gap-x-4 sm:gap-y-10 animate-in fade-in">
             {videos.map((video) => (
                 <VideoCard key={video._id} video={video} />
             ))}

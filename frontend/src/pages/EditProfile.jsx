@@ -75,7 +75,7 @@ const EditProfile = () => {
     };
 
     return (
-        <div className="max-w-3xl mx-auto p-4 sm:p-8 animate-in fade-in duration-500">
+        <div className="max-w-3xl mx-auto p-4 sm:p-8 pb-3 animate-in fade-in duration-500">
             <div className="mb-8">
                 <h1 className="text-3xl font-black tracking-tight">Edit Profile</h1>
                 <p className="text-gray-400 text-sm font-medium mt-1">Manage your channel identity and presence</p>

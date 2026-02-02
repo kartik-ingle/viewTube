@@ -43,9 +43,15 @@ const Channel = () => {
             setSubscribersCount(channelData.subscribers?.length || 0);
 
             if (user) {
-                setIsSubscribed(
-                    channelData.subscribers?.includes(user.id) || false
-                );
+                const userId = user.id || user._id; // Handle both ID formats
+
+                const isSub = channelData.subscribers?.some(subscriber => {
+                    // Handle: 1. Populated Object with .id (toJSON) 2. Populated Object with ._id 3. Raw ID string/ObjectId
+                    const subId = subscriber.id || subscriber._id || subscriber;
+                    return subId.toString() === userId.toString();
+                }) || false;
+
+                setIsSubscribed(isSub);
             }
 
             // Fetch channel videos
@@ -112,7 +118,7 @@ const Channel = () => {
     const isOwner = user?.id === channel._id;
 
     return (
-        <div className="animate-in fade-in">
+        <div className="animate-in fade-in pb-3">
             {/* Channel Header */}
             <div className="glass-dark border-b border-white/5">
                 <div className="max-w-7xl mx-auto p-6">

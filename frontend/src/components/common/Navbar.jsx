@@ -1,137 +1,343 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Video, User, LogOut, Menu, X } from 'lucide-react';
+import { Menu, Video, Bell, User, LogOut, Settings, Upload, ListVideo, Search as SearchIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import SearchBar from './SearchBar';
+import NotificationBell from '../notifications/NotificationBell';
+import NotificationPanel from '../notifications/NotificationPanel';
 
 const Navbar = ({ onMenuClick }) => {
-    const [searchQuery, setSearchQuery] = useState('');
-    const [showUserMenu, setShowUserMenu] = useState(false);
-    const { user, logout, isAuthenticated } = useAuth();
+    const { isAuthenticated, user, logout } = useAuth();
     const navigate = useNavigate();
-
-    const handleSearch = (e) => {
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            navigate(`/?search=${searchQuery}`);
-        }
-    };
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+    const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
 
     const handleLogout = () => {
         logout();
         navigate('/login');
+        setProfileMenuOpen(false);
+        setMobileMenuOpen(false);
     };
 
     return (
-        <nav className="fixed top-0 left-0 right-0 glass-dark z-50">
-            <div className="flex items-center justify-between px-4 h-16">
-                {/* Left Section */}
-                <div className="flex items-center gap-2 lg:gap-4">
-                    <button
-                        onClick={onMenuClick}
-                        className="p-2 hover:bg-white/10 rounded-full transition-all active:scale-90"
-                    >
-                        <Menu size={24} />
-                    </button>
-
-                    <Link to="/" className="flex items-center gap-2 smooth-transition hover:opacity-80">
-                        <Video className="text-primary fill-current" size={32} />
-                        <span className="text-xl font-bold tracking-tight hidden sm:block">ViewTube</span>
-                    </Link>
-                </div>
-
-                {/* Center Section - Search (Responsive) */}
-                <form onSubmit={handleSearch} className="flex-1 max-w-[720px] mx-4 hidden xs:block">
-                    <div className="flex group">
-                        <input
-                            type="text"
-                            placeholder="Search"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="flex-1 bg-white/5 border border-white/10 rounded-l-full px-5 py-2 focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all text-[15px] placeholder:text-gray-500"
-                        />
-                        <button
-                            type="submit"
-                            className="bg-white/5 border border-l-0 border-white/10 rounded-r-full px-5 hover:bg-white/10 transition-all flex items-center justify-center text-gray-400 group-focus-within:border-primary/50"
-                        >
-                            <Search size={18} />
-                        </button>
-                    </div>
-                </form>
-
-                {/* Right Section */}
-                <div className="flex items-center gap-1 sm:gap-3">
-                    <button className="p-2 hover:bg-white/10 rounded-full transition-all xs:hidden">
-                        <Search size={20} />
-                    </button>
-
-                    {isAuthenticated ? (
-                        <>
-                            <Link
-                                to="/upload"
-                                className="p-2 sm:px-4 sm:py-2 hover:bg-white/10 rounded-full sm:rounded-lg flex items-center gap-2 transition-all active:scale-95"
-                                title="Create"
+        <>
+            <nav className="sticky top-0 z-50 glass-dark border-b border-white/10 backdrop-blur-xl">
+                <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex items-center justify-between h-16">
+                        {/* Left Section - Menu + Logo */}
+                        <div className="flex items-center gap-3">
+                            {/* Menu Button for Sidebar Toggle */}
+                            <button
+                                onClick={onMenuClick}
+                                className="p-2.5 glass hover:bg-white/10 rounded-full smooth-transition"
+                                aria-label="Toggle menu"
                             >
-                                <Video size={20} />
-                                <span className="hidden md:block font-medium">Create</span>
-                            </Link>
+                                <Menu size={20} />
+                            </button>
 
-                            <div className="relative">
+                            {/* Logo */}
+                            <Link
+                                to="/"
+                                className="flex items-center gap-2 font-bold text-xl hover:text-red-500 smooth-transition flex-shrink-0"
+                            >
+                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-600 to-pink-600 flex items-center justify-center">
+                                    <Video size={20} className="text-white" />
+                                </div>
+                                <span className="hidden sm:inline bg-gradient-to-r from-red-500 to-pink-500 bg-clip-text text-transparent">
+                                    VideoHub
+                                </span>
+                            </Link>
+                        </div>
+
+                        {/* Desktop Search Bar */}
+                        <div className="hidden md:flex flex-1 max-w-2xl mx-8">
+                            <SearchBar />
+                        </div>
+
+                        {/* Desktop Actions */}
+                        <div className="hidden md:flex items-center gap-3">
+                            {isAuthenticated ? (
+                                <>
+                                    {/* Upload Button */}
+                                    <Link
+                                        to="/upload"
+                                        className="flex items-center gap-2 px-4 py-2 glass hover:bg-white/10 rounded-full smooth-transition font-semibold"
+                                    >
+                                        <Upload size={18} />
+                                        <span>Upload</span>
+                                    </Link>
+
+                                    {/* Notifications - UPDATED */}
+                                    <NotificationBell
+                                        onClick={() => setShowNotifications(true)}
+                                    />
+
+                                    {/* Profile Menu */}
+                                    <div className="relative">
+                                        <button
+                                            onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                                            className="flex items-center gap-2 p-1 glass hover:bg-white/10 rounded-full smooth-transition"
+                                        >
+                                            <img
+                                                src={user?.profilePicture || 'https://via.placeholder.com/40'}
+                                                alt={user?.username}
+                                                className="w-8 h-8 rounded-full object-cover border-2 border-white/10"
+                                                onError={(e) => {
+                                                    e.target.src = 'https://via.placeholder.com/40';
+                                                }}
+                                            />
+                                        </button>
+
+                                        {/* Profile Dropdown */}
+                                        {profileMenuOpen && (
+                                            <>
+                                                <div
+                                                    className="fixed inset-0 z-40"
+                                                    onClick={() => setProfileMenuOpen(false)}
+                                                />
+                                                <div className="absolute right-0 mt-2 w-64 glass rounded-2xl overflow-hidden shadow-2xl border border-white/10 z-50 animate-in fade-in slide-in-from-top-2">
+                                                    {/* Profile Header */}
+                                                    <div className="p-4 border-b border-white/10">
+                                                        <div className="flex items-center gap-3">
+                                                            <img
+                                                                src={user?.profilePicture || 'https://via.placeholder.com/48'}
+                                                                alt={user?.username}
+                                                                className="w-12 h-12 rounded-full object-cover"
+                                                            />
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="font-bold truncate">{user?.channelName}</p>
+                                                                <p className="text-sm text-gray-400 truncate">@{user?.username}</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Menu Items */}
+                                                    <div className="py-2">
+                                                        <Link
+                                                            to={`/channel/${user?.id}`}
+                                                            onClick={() => setProfileMenuOpen(false)}
+                                                            className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 smooth-transition"
+                                                        >
+                                                            <User size={18} className="text-gray-400" />
+                                                            <span>Your Channel</span>
+                                                        </Link>
+
+                                                        <Link
+                                                            to="/playlists"
+                                                            onClick={() => setProfileMenuOpen(false)}
+                                                            className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 smooth-transition"
+                                                        >
+                                                            <ListVideo size={18} className="text-gray-400" />
+                                                            <span>Your Playlists</span>
+                                                        </Link>
+
+                                                        {/* ADDED: Notifications Link */}
+                                                        <Link
+                                                            to="/notifications"
+                                                            onClick={() => setProfileMenuOpen(false)}
+                                                            className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 smooth-transition"
+                                                        >
+                                                            <Bell size={18} className="text-gray-400" />
+                                                            <span>Notifications</span>
+                                                        </Link>
+
+                                                        <Link
+                                                            to="/profile/edit"
+                                                            onClick={() => setProfileMenuOpen(false)}
+                                                            className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 smooth-transition"
+                                                        >
+                                                            <Settings size={18} className="text-gray-400" />
+                                                            <span>Settings</span>
+                                                        </Link>
+                                                    </div>
+
+                                                    {/* Logout */}
+                                                    <div className="border-t border-white/10">
+                                                        <button
+                                                            onClick={handleLogout}
+                                                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-600/20 text-red-500 smooth-transition"
+                                                        >
+                                                            <LogOut size={18} />
+                                                            <span>Sign Out</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        to="/login"
+                                        className="px-6 py-2 glass hover:bg-white/10 rounded-full smooth-transition font-semibold"
+                                    >
+                                        Sign In
+                                    </Link>
+                                    <Link
+                                        to="/register"
+                                        className="px-6 py-2 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 rounded-full smooth-transition font-semibold"
+                                    >
+                                        Sign Up
+                                    </Link>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Mobile Actions */}
+                        <div className="flex md:hidden items-center gap-2">
+                            {/* Mobile Search Icon */}
+                            <button
+                                onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+                                className="p-2.5 glass hover:bg-white/10 rounded-full smooth-transition"
+                            >
+                                <SearchIcon size={20} />
+                            </button>
+
+                            {/* ADDED: Mobile Notification Bell */}
+                            {isAuthenticated && (
+                                <NotificationBell
+                                    onClick={() => setShowNotifications(true)}
+                                />
+                            )}
+
+                            {/* Profile Picture or Sign In for Mobile */}
+                            {isAuthenticated ? (
                                 <button
-                                    onClick={() => setShowUserMenu(!showUserMenu)}
-                                    className="flex items-center p-1 hover:bg-white/10 rounded-full transition-all"
+                                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                    className="flex items-center gap-2 p-1 glass hover:bg-white/10 rounded-full smooth-transition"
                                 >
                                     <img
-                                        src={user?.profilePicture || '/default-avatar.png'}
+                                        src={user?.profilePicture || 'https://via.placeholder.com/40'}
                                         alt={user?.username}
-                                        className="w-8 h-8 rounded-full object-cover border border-white/10"
+                                        className="w-8 h-8 rounded-full object-cover border-2 border-white/10"
                                         onError={(e) => {
-                                            e.target.src = 'https://via.placeholder.com/32';
+                                            e.target.src = 'https://via.placeholder.com/40';
                                         }}
                                     />
                                 </button>
+                            ) : (
+                                <button
+                                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                    className="p-2.5 glass hover:bg-white/10 rounded-full smooth-transition"
+                                >
+                                    <User size={20} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
 
-                                {showUserMenu && (
-                                    <div className="absolute right-0 mt-3 w-64 glass rounded-2xl shadow-2xl overflow-hidden py-1 animate-in fade-in slide-in-from-top-2 duration-200">
-                                        <div className="px-5 py-4 flex flex-col gap-0.5 border-b border-white/5 bg-white/5">
-                                            <p className="font-bold truncate text-[15px]">{user?.username}</p>
-                                            <p className="text-xs text-gray-400 truncate">{user?.email}</p>
-                                        </div>
-
-                                        <Link
-                                            to={`/channel/${user?.id}`}
-                                            className="flex items-center gap-3 px-5 py-3 hover:bg-white/10 transition-all text-sm font-medium"
-                                            onClick={() => setShowUserMenu(false)}
-                                        >
-                                            <User size={18} />
-                                            <span>Your channel</span>
-                                        </Link>
-
-                                        <button
-                                            onClick={() => {
-                                                handleLogout();
-                                                setShowUserMenu(false);
-                                            }}
-                                            className="flex items-center gap-3 px-5 py-3 hover:bg-white/10 transition-all w-full text-left text-sm font-medium border-t border-white/5"
-                                        >
-                                            <LogOut size={18} />
-                                            <span>Sign out</span>
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        </>
-                    ) : (
-                        <Link
-                            to="/login"
-                            className="flex items-center gap-2 border border-white/10 hover:border-primary/50 hover:bg-primary/10 text-primary-content px-4 py-1.5 rounded-full transition-all font-medium text-sm"
-                        >
-                            <User size={18} className="text-primary" />
-                            <span className="text-white">Sign in</span>
-                        </Link>
+                    {/* Mobile Search Bar */}
+                    {mobileSearchOpen && (
+                        <div className="md:hidden pb-4 animate-in fade-in slide-in-from-top-2">
+                            <SearchBar isMobile={true} />
+                        </div>
                     )}
                 </div>
-            </div>
-        </nav>
+
+                {/* Mobile Menu */}
+                {mobileMenuOpen && (
+                    <div className="md:hidden glass-dark border-t border-white/10 animate-in fade-in slide-in-from-top-2">
+                        <div className="px-4 py-4 space-y-2">
+                            {isAuthenticated ? (
+                                <>
+                                    {/* Profile Section */}
+                                    <Link
+                                        to={`/channel/${user?.id}`}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center gap-3 p-3 glass hover:bg-white/10 rounded-xl smooth-transition"
+                                    >
+                                        <img
+                                            src={user?.profilePicture || 'https://via.placeholder.com/40'}
+                                            alt={user?.username}
+                                            className="w-10 h-10 rounded-full object-cover"
+                                        />
+                                        <div className="flex-1">
+                                            <p className="font-semibold">{user?.channelName}</p>
+                                            <p className="text-xs text-gray-400">@{user?.username}</p>
+                                        </div>
+                                    </Link>
+
+                                    <div className="divider my-2" />
+
+                                    <Link
+                                        to="/upload"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center gap-3 px-3 py-3 glass hover:bg-white/10 rounded-xl smooth-transition"
+                                    >
+                                        <Upload size={20} className="text-gray-400" />
+                                        <span>Upload Video</span>
+                                    </Link>
+
+                                    <Link
+                                        to="/playlists"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center gap-3 px-3 py-3 glass hover:bg-white/10 rounded-xl smooth-transition"
+                                    >
+                                        <ListVideo size={20} className="text-gray-400" />
+                                        <span>Your Playlists</span>
+                                    </Link>
+
+                                    {/* ADDED: Mobile Notifications Link */}
+                                    <Link
+                                        to="/notifications"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center gap-3 px-3 py-3 glass hover:bg-white/10 rounded-xl smooth-transition"
+                                    >
+                                        <Bell size={20} className="text-gray-400" />
+                                        <span>Notifications</span>
+                                    </Link>
+
+                                    <Link
+                                        to="/profile/edit"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center gap-3 px-3 py-3 glass hover:bg-white/10 rounded-xl smooth-transition"
+                                    >
+                                        <Settings size={20} className="text-gray-400" />
+                                        <span>Settings</span>
+                                    </Link>
+
+                                    <div className="divider my-2" />
+
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full flex items-center gap-3 px-3 py-3 hover:bg-red-600/20 text-red-500 rounded-xl smooth-transition"
+                                    >
+                                        <LogOut size={20} />
+                                        <span>Sign Out</span>
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link
+                                        to="/login"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="block w-full text-center px-6 py-3 glass hover:bg-white/10 rounded-xl smooth-transition font-semibold"
+                                    >
+                                        Sign In
+                                    </Link>
+                                    <Link
+                                        to="/register"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="block w-full text-center px-6 py-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 rounded-xl smooth-transition font-semibold"
+                                    >
+                                        Sign Up
+                                    </Link>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </nav>
+
+            {/* ADDED: Notification Panel */}
+            <NotificationPanel
+                isOpen={showNotifications}
+                onClose={() => setShowNotifications(false)}
+            />
+        </>
     );
 };
 

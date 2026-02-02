@@ -55,7 +55,7 @@ const History = () => {
     }
 
     return (
-        <div className="p-4">
+        <div className="p-4 pb-3">
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-3xl font-bold">Watch History</h1>
                 {history.length > 0 && (

@@ -59,7 +59,7 @@ const Trending = () => {
     };
 
     return (
-        <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in">
+        <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-3 animate-in fade-in">
             {/* Header */}
             <div className="mb-8">
                 <div className="flex items-center gap-3 mb-4">
@@ -83,8 +83,8 @@ const Trending = () => {
                                 key={range.id}
                                 onClick={() => setTimeRange(range.id)}
                                 className={`px-4 py-2.5 rounded-xl font-semibold text-sm whitespace-nowrap smooth-transition active:scale-95 flex items-center gap-2 ${timeRange === range.id
-                                        ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-lg'
-                                        : 'glass hover:bg-white/10 text-gray-300'
+                                    ? 'bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-lg'
+                                    : 'glass hover:bg-white/10 text-gray-300'
                                     }`}
                             >
                                 <Icon size={16} />

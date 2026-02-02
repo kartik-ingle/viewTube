@@ -68,7 +68,7 @@ const Playlists = () => {
     }
 
     return (
-        <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in">
+        <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-3 animate-in fade-in">
             {/* Header */}
             <div className="mb-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
@@ -98,8 +98,8 @@ const Playlists = () => {
                     <button
                         onClick={() => setFilter('all')}
                         className={`px-4 py-2 rounded-lg font-semibold text-sm smooth-transition ${filter === 'all'
-                                ? 'bg-white/10 text-white'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            ? 'bg-white/10 text-white'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         All ({playlists.length})
@@ -107,8 +107,8 @@ const Playlists = () => {
                     <button
                         onClick={() => setFilter('public')}
                         className={`px-4 py-2 rounded-lg font-semibold text-sm smooth-transition flex items-center gap-2 ${filter === 'public'
-                                ? 'bg-white/10 text-white'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            ? 'bg-white/10 text-white'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         <Globe size={16} />
@@ -117,8 +117,8 @@ const Playlists = () => {
                     <button
                         onClick={() => setFilter('private')}
                         className={`px-4 py-2 rounded-lg font-semibold text-sm smooth-transition flex items-center gap-2 ${filter === 'private'
-                                ? 'bg-white/10 text-white'
-                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            ? 'bg-white/10 text-white'
+                            : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                     >
                         <Lock size={16} />

@@ -116,7 +116,7 @@ const PlaylistPage = () => {
     const thumbnailUrl = playlist.thumbnailUrl || playlist.videos?.[0]?.thumbnailUrl || 'https://via.placeholder.com/400x225?text=Empty+Playlist';
 
     return (
-        <div className="max-w-[1800px] mx-auto p-4 sm:p-6 lg:p-8 animate-in fade-in">
+        <div className="max-w-[1800px] mx-auto p-4 sm:p-6 lg:p-8 pb-3 animate-in fade-in">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Playlist Info Sidebar */}
                 <div className="lg:col-span-1">

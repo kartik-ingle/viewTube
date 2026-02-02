@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import Playlists from './pages/Playlists';
 import PlaylistPage from './pages/PlaylistPage';
+import Notifications from './pages/Notifications';
 
 // Layout Components
 import Navbar from './components/common/Navbar';
@@ -77,7 +78,7 @@ function App() {
 
                     {/* Main Content */}
                     <main
-                      className={`flex-1 overflow-y-auto smooth-transition min-h-[calc(100vh-64px)] ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'
+                      className={`flex-1 overflow-y-auto smooth-transition min-h-[calc(100vh-64px)] pb-20 ${sidebarOpen ? 'lg:ml-64' : 'lg:ml-20'
                         }`}
                     >
                       <Routes>
@@ -90,6 +91,7 @@ function App() {
                         <Route path="/trending" element={<Trending />} />
                         <Route path="/playlists" element={<Playlists />} />
                         <Route path="/playlist/:id" element={<PlaylistPage />} />
+                        <Route path="/notifications" element={<Notifications />} />
 
                         {/* 404 Page */}
                         <Route path="*" element={<ErrorPage />} />
