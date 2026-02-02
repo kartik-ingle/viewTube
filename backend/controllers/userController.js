@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const { createNotification } = require('../utils/notifications');
 
 // Get User/Channel Info
 exports.getUserById = async (req, res) => {
@@ -71,20 +72,33 @@ exports.subscribeToChannel = async (req, res) => {
             return res.status(404).json({ message: 'Channel not found' });
         }
 
-        const isSubscribed = channel.subscribers.includes(userId);
+        const isSubscribed = channel.subscribers.some(id => id.toString() === userId.toString());
 
         if (isSubscribed) {
             // Unsubscribe
             channel.subscribers = channel.subscribers.filter(
-                id => id.toString() !== userId
+                id => id.toString() !== userId.toString()
             );
             user.subscribedChannels = user.subscribedChannels.filter(
-                id => id.toString() !== channelId
+                id => id.toString() !== channelId.toString()
             );
         } else {
             // Subscribe
             channel.subscribers.push(userId);
             user.subscribedChannels.push(channelId);
+
+            // Create notification only if not subscribing to self (already checked, but good practice)
+            if (channelId.toString() !== userId.toString()) {
+                await createNotification({
+                    recipient: channelId,
+                    sender: userId,
+                    type: 'subscribe',
+                    message: 'subscribed to your channel',
+                    resourceId: userId,
+                    resourceType: 'User',
+                    link: `/channel/${userId}`
+                });
+            }
         }
 
         await channel.save();

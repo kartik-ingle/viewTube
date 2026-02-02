@@ -1,4 +1,6 @@
 const Comment = require('../models/Comment');
+const createNotification = require('../utils/notifications');
+const Video = require('../models/Video');
 
 // Add Comment
 exports.addComment = async (req, res) => {
@@ -18,6 +20,35 @@ exports.addComment = async (req, res) => {
 
         await comment.save();
         await comment.populate('userId', 'username profilePicture');
+
+        if (parentComment) {
+            const parentCommentDoc = await Comment.findById(parentComment).populate('userId', '_id');
+            if (parentCommentDoc) {
+                await createNotification({
+                    recipient: parentCommentDoc.userId._id,
+                    sender: req.userId,
+                    type: 'reply',
+                    message: 'replied to your comment',
+                    resourceId: videoId,
+                    resourceType: 'Video',
+                    link: `/video/${videoId}`
+                })
+            }
+        } else {
+            const video = await Video.findById(videoId).populate('uploadedBy', '_id');
+            if (video) {
+                await createNotification({
+                    recipient: video.uploadedBy._id,
+                    sender: req.userId,
+                    type: 'comment',
+                    message: 'commented on your video',
+                    resourceId: videoId,
+                    resourceType: 'Video',
+                    link: `/video/${videoId}`,
+                    thumbnail: video.thumbnailUrl
+                });
+            }
+        }
 
         res.status(201).json({
             message: 'Comment added successfully',

@@ -14,12 +14,19 @@ router.post('/upload',
     videoController.uploadVideo
 );
 
+// Public routes
 router.get('/', videoController.getAllVideos);
+router.get('/search', videoController.searchVideos); // NEW: Advanced search
+router.get('/trending', videoController.getTrendingVideos); // NEW: Trending videos
+router.get('/user/:userId', videoController.getVideosByUser);
 router.get('/:id', videoController.getVideoById);
+
+// Semi-protected routes (view increment doesn't require auth)
 router.put('/:id/view', videoController.incrementViews);
+
+// Protected routes (require authentication)
 router.put('/:id/like', authMiddleware, videoController.likeVideo);
 router.put('/:id/dislike', authMiddleware, videoController.dislikeVideo);
 router.delete('/:id', authMiddleware, videoController.deleteVideo);
-router.get('/user/:userId', videoController.getVideosByUser);
 
 module.exports = router;

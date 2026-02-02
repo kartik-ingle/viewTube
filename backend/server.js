@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const morgan = require('morgan');
 const connectDB = require('./config/db');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -39,6 +40,7 @@ app.use((req, res, next) => {
 
 
 // Routes
+app.use('/api/notifications', notificationRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/videos', videoRoutes);
 app.use('/api/comments', commentRoutes);
