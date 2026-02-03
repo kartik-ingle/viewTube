@@ -228,11 +228,17 @@ const Notifications = () => {
 
                                     {/* Content */}
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm sm:text-base">
-                                            <span className="font-bold">{notification.sender?.username || 'Unknown User'}</span>
+                                        <div className="text-sm sm:text-base">
+                                            <Link
+                                                to={`/channel/${notification.sender?._id || notification.sender?.id || notification.sender}`}
+                                                className="font-bold hover:underline"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                {notification.sender?.username || 'Unknown User'}
+                                            </Link>
                                             {' '}
                                             <span className="text-gray-300">{notification.message}</span>
-                                        </p>
+                                        </div>
                                         <p className="text-xs text-gray-500 mt-1">
                                             {formatDate(notification.createdAt)}
                                         </p>

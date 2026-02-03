@@ -2,11 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../utils/api';
 import VideoGrid from '../components/video/VideoGrid';
-import { Video, Search, Filter, X, Clock, Calendar, SlidersHorizontal, ArrowUp } from 'lucide-react';
+import { Video, Search, Filter, X, Clock, Calendar, SlidersHorizontal, ArrowUp, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
-
+import { useAuth } from '../context/AuthContext';
 
 const SORT_OPTIONS = [
+    { id: 'recommended', name: '✨ For You', icon: '✨' },
     { id: 'recent', name: 'Most Recent', icon: '🕐' },
     { id: 'popular', name: 'Most Popular', icon: '🔥' },
     { id: 'rating', name: 'Top Rated', icon: '⭐' },
@@ -29,6 +30,7 @@ const DURATION_OPTIONS = [
 ];
 
 const Home = () => {
+    const { isAuthenticated } = useAuth();
     const [videos, setVideos] = useState([]);
     const [filteredVideos, setFilteredVideos] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -37,23 +39,17 @@ const Home = () => {
     const [showBackToTop, setShowBackToTop] = useState(false);
 
     // Filter states
-    const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
-    const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'recent');
+    const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'recommended');
     const [uploadDate, setUploadDate] = useState(searchParams.get('uploadDate') || 'all');
     const [duration, setDuration] = useState(searchParams.get('duration') || 'all');
 
     // UI states
-    const [showFilters, setShowFilters] = useState(false);
     const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
     // Scroll listener for Back to Top
     useEffect(() => {
         const handleScroll = () => {
-            if (window.scrollY > 400) {
-                setShowBackToTop(true);
-            } else {
-                setShowBackToTop(false);
-            }
+            setShowBackToTop(window.scrollY > 400);
         };
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
@@ -67,19 +63,27 @@ const Home = () => {
     const fetchVideos = useCallback(async () => {
         setLoading(true);
         try {
-            const params = {};
-            if (searchQuery) params.search = searchQuery;
-            if (selectedCategory !== 'all') params.category = selectedCategory;
+            let response;
 
-            const response = await api.get('/videos', { params });
-            setVideos(response.data.videos);
+            if (searchQuery) {
+                // Search mode
+                response = await api.get('/videos', { params: { search: searchQuery } });
+            } else if (sortBy === 'recommended' && isAuthenticated) {
+                // Personalized recommendations
+                response = await api.get('/recommendations');
+            } else {
+                // Regular video listing
+                response = await api.get('/videos');
+            }
+
+            setVideos(response.data.videos || response.data.recommendations || []);
         } catch (error) {
             console.error('Failed to fetch videos:', error);
-            // toast.error('Failed to load videos'); // Suppress error on initial load if backend is waking up
+            toast.error('Failed to load videos');
         } finally {
             setLoading(false);
         }
-    }, [searchQuery, selectedCategory]);
+    }, [searchQuery, sortBy, isAuthenticated]);
 
     useEffect(() => {
         fetchVideos();
@@ -109,25 +113,27 @@ const Home = () => {
             }
         }
 
-        // Sort videos
-        switch (sortBy) {
-            case 'popular':
-                result.sort((a, b) => (b.views || 0) - (a.views || 0));
-                break;
-            case 'rating':
-                result.sort((a, b) => {
-                    const ratingA = (a.likes?.length || 0) - (a.dislikes?.length || 0);
-                    const ratingB = (b.likes?.length || 0) - (b.dislikes?.length || 0);
-                    return ratingB - ratingA;
-                });
-                break;
-            case 'oldest':
-                result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-                break;
-            case 'recent':
-            default:
-                result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-                break;
+        // Sort videos (skip if already using recommendations)
+        if (sortBy !== 'recommended') {
+            switch (sortBy) {
+                case 'popular':
+                    result.sort((a, b) => (b.views || 0) - (a.views || 0));
+                    break;
+                case 'rating':
+                    result.sort((a, b) => {
+                        const ratingA = (a.likes?.length || 0) - (a.dislikes?.length || 0);
+                        const ratingB = (b.likes?.length || 0) - (b.dislikes?.length || 0);
+                        return ratingB - ratingA;
+                    });
+                    break;
+                case 'oldest':
+                    result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                    break;
+                case 'recent':
+                default:
+                    result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                    break;
+            }
         }
 
         setFilteredVideos(result);
@@ -136,18 +142,12 @@ const Home = () => {
     // Update URL params
     const updateFilters = (key, value) => {
         const params = new URLSearchParams(searchParams);
-        if (value === 'all' || !value) {
+        if (value === 'all' || value === 'recommended' || !value) {
             params.delete(key);
         } else {
             params.set(key, value);
         }
         setSearchParams(params);
-    };
-
-    const handleCategoryChange = (category) => {
-        setSelectedCategory(category);
-        updateFilters('category', category);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleSortChange = (sort) => {
@@ -166,25 +166,19 @@ const Home = () => {
     };
 
     const clearAllFilters = () => {
-        setSelectedCategory('all');
-        setSortBy('recent');
+        setSortBy('recommended');
         setUploadDate('all');
         setDuration('all');
         setSearchParams({});
     };
 
     const activeFiltersCount =
-        (selectedCategory !== 'all' ? 1 : 0) +
-        (sortBy !== 'recent' ? 1 : 0) +
+        (sortBy !== 'recommended' ? 1 : 0) +
         (uploadDate !== 'all' ? 1 : 0) +
         (duration !== 'all' ? 1 : 0);
 
     return (
-        <div className="w-full min-h-screen relative bg-[#0a0a0a]">
-            {/* Sticky Category Header */}
-
-
-            {/* Main Content Area - Increased padding bottom to avoid cut-off */}
+        <div className="w-full min-h-screen relative bg-gradient-to-br from-[#0a0a0a] via-[#0b0b0f] to-[#09090b]">
             <div className="max-w-[2560px] mx-auto px-4 sm:px-6 lg:px-8 pb-3">
                 {/* Search Header */}
                 {searchQuery && (
@@ -206,18 +200,30 @@ const Home = () => {
                     </div>
                 )}
 
+                {/* Personalized Header */}
+                {!searchQuery && sortBy === 'recommended' && isAuthenticated && (
+                    <div className="mb-6 animate-in fade-in">
+                        <div className="flex items-center gap-3">
+                            <Sparkles size={28} className="text-yellow-500" />
+                            <div>
+                                <h2 className="text-2xl font-bold">Recommended for you</h2>
+                                <p className="text-sm text-gray-400">Based on your watch history and preferences</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* Filter Controls Row */}
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
                         <h3 className="font-bold text-lg flex items-center gap-2">
-                            {selectedCategory !== 'all' && (
-                                <span className="text-red-500 mr-1">{CATEGORIES.find(c => c.id === selectedCategory)?.name}</span>
-                            )}
                             <span>Videos</span>
+                            <span className="text-sm font-normal text-gray-400">
+                                ({filteredVideos.length})
+                            </span>
                         </h3>
 
                         <div className="flex items-center gap-2">
-                            {/* Clear Filters */}
                             {activeFiltersCount > 0 && (
                                 <button
                                     onClick={clearAllFilters}
@@ -228,7 +234,6 @@ const Home = () => {
                                 </button>
                             )}
 
-                            {/* Advanced Filters Toggle */}
                             <button
                                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-full smooth-transition font-semibold ${showAdvancedFilters || activeFiltersCount > 0
@@ -250,7 +255,7 @@ const Home = () => {
                     {/* Advanced Filters Panel */}
                     {showAdvancedFilters && (
                         <div className="glass rounded-2xl p-4 mb-4 border border-white/10 animate-in fade-in slide-in-from-top-2">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {/* Sort By */}
                                 <div>
                                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-2">
@@ -315,31 +320,6 @@ const Home = () => {
                                                 {option.name}
                                             </button>
                                         ))}
-                                    </div>
-                                </div>
-
-                                {/* Active Filters Summary */}
-                                <div>
-                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">
-                                        Active Filters
-                                    </label>
-                                    <div className="space-y-2">
-                                        {selectedCategory !== 'all' && (
-                                            <div className="px-3 py-2 bg-red-600/10 border border-red-600/20 rounded-lg text-sm flex items-center justify-between group">
-                                                <div>
-                                                    <span className="text-gray-400 text-xs">Category</span>
-                                                    <div className="font-semibold text-red-400">
-                                                        {CATEGORIES.find(c => c.id === selectedCategory)?.name}
-                                                    </div>
-                                                </div>
-                                                <button onClick={() => handleCategoryChange('all')} className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <X size={14} className="text-red-400" />
-                                                </button>
-                                            </div>
-                                        )}
-                                        {activeFiltersCount === 0 && (
-                                            <p className="text-sm text-gray-500 italic p-2">No active filters</p>
-                                        )}
                                     </div>
                                 </div>
                             </div>

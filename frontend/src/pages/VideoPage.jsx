@@ -1,6 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ThumbsUp, ThumbsDown, Share2, Trash2, Eye, Calendar, ListPlus } from 'lucide-react';
+import {
+    ThumbsUp,
+    ThumbsDown,
+    Share2,
+    Trash2,
+    Eye,
+    Calendar,
+    ListPlus
+} from 'lucide-react';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 import VideoPlayer from '../components/video/VideoPlayer';
@@ -10,19 +18,24 @@ import { formatViews, formatSubscribers } from '../utils/formatViews';
 import { useAuth } from '../context/AuthContext';
 import Loading from '../components/common/Loading';
 import AddToPlaylistModal from '../components/playlist/AddToPlaylistModal';
+import RecommendedVideos from '../components/video/RecommendedVideos';
 
 const VideoPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user, isAuthenticated } = useAuth();
+
     const [video, setVideo] = useState(null);
     const [loading, setLoading] = useState(true);
+
     const [isLiked, setIsLiked] = useState(false);
     const [isDisliked, setIsDisliked] = useState(false);
     const [isSubscribed, setIsSubscribed] = useState(false);
+
     const [likesCount, setLikesCount] = useState(0);
     const [dislikesCount, setDislikesCount] = useState(0);
     const [subscribersCount, setSubscribersCount] = useState(0);
+
     const [showFullDescription, setShowFullDescription] = useState(false);
     const [showAddToPlaylist, setShowAddToPlaylist] = useState(false);
 
@@ -37,25 +50,23 @@ const VideoPage = () => {
     const fetchVideo = async () => {
         setLoading(true);
         try {
-            const response = await api.get(`/videos/${id}`);
-            const videoData = response.data.video;
-            setVideo(videoData);
+            const res = await api.get(`/videos/${id}`);
+            const v = res.data.video;
 
-            setLikesCount(videoData.likes?.length || 0);
-            setDislikesCount(videoData.dislikes?.length || 0);
-            setSubscribersCount(videoData.uploadedBy?.subscribers?.length || 0);
+            setVideo(v);
+            setLikesCount(v.likes?.length || 0);
+            setDislikesCount(v.dislikes?.length || 0);
+            setSubscribersCount(v.uploadedBy?.subscribers?.length || 0);
 
             if (user) {
-                const userId = user.id || user._id; // Handle both potential ID properties
-                setIsLiked(videoData.likes?.some(id => id.toString() === userId.toString()) || false);
-                setIsDisliked(videoData.dislikes?.some(id => id.toString() === userId.toString()) || false);
-                // uploadedBy.subscribers is an array of IDs based on our backend logic analysis
+                const uid = user.id || user._id;
+                setIsLiked(v.likes?.some(i => i.toString() === uid.toString()));
+                setIsDisliked(v.dislikes?.some(i => i.toString() === uid.toString()));
                 setIsSubscribed(
-                    videoData.uploadedBy?.subscribers?.some(id => id.toString() === userId.toString()) || false
+                    v.uploadedBy?.subscribers?.some(i => i.toString() === uid.toString())
                 );
             }
-        } catch (error) {
-            console.error('Failed to fetch video:', error);
+        } catch {
             toast.error('Failed to load video');
             navigate('/');
         } finally {
@@ -66,30 +77,20 @@ const VideoPage = () => {
     const incrementView = async () => {
         try {
             await api.put(`/videos/${id}/view`);
-        } catch (error) {
-            console.error('Failed to increment view:', error);
-        }
+        } catch { }
     };
 
     const addToHistory = async () => {
         if (!isAuthenticated) return;
-
         try {
             await api.post('/history', { videoId: id });
-        } catch (error) {
-            console.error('Failed to add to history:', error);
-        }
+        } catch { }
     };
 
     const handleLike = async () => {
-        if (!isAuthenticated) {
-            toast.error('Please sign in to like videos');
-            return;
-        }
-
+        if (!isAuthenticated) return toast.error('Please sign in to like videos');
         try {
             await api.put(`/videos/${id}/like`);
-
             if (isLiked) {
                 setLikesCount(likesCount - 1);
                 setIsLiked(false);
@@ -101,20 +102,15 @@ const VideoPage = () => {
                     setIsDisliked(false);
                 }
             }
-        } catch (error) {
+        } catch {
             toast.error('Failed to like video');
         }
     };
 
     const handleDislike = async () => {
-        if (!isAuthenticated) {
-            toast.error('Please sign in to dislike videos');
-            return;
-        }
-
+        if (!isAuthenticated) return toast.error('Please sign in to dislike videos');
         try {
             await api.put(`/videos/${id}/dislike`);
-
             if (isDisliked) {
                 setDislikesCount(dislikesCount - 1);
                 setIsDisliked(false);
@@ -126,20 +122,16 @@ const VideoPage = () => {
                     setIsLiked(false);
                 }
             }
-        } catch (error) {
+        } catch {
             toast.error('Failed to dislike video');
         }
     };
 
     const handleSubscribe = async () => {
-        if (!isAuthenticated) {
-            toast.error('Please sign in to subscribe');
-            return;
-        }
-
+        if (!isAuthenticated) return toast.error('Please sign in to subscribe');
         try {
-            await api.put(`/users/${video.uploadedBy.id}/subscribe`);
-
+            const uploadedByUserId = video.uploadedBy?._id || video.uploadedBy?.id || video.uploadedBy;
+            await api.put(`/users/${uploadedByUserId}/subscribe`);
             if (isSubscribed) {
                 setSubscribersCount(subscribersCount - 1);
                 setIsSubscribed(false);
@@ -149,19 +141,18 @@ const VideoPage = () => {
                 setIsSubscribed(true);
                 toast.success('Subscribed!');
             }
-        } catch (error) {
+        } catch {
             toast.error('Failed to subscribe');
         }
     };
 
     const handleShare = () => {
         const url = window.location.href;
-
         if (navigator.share) {
             navigator.share({
                 title: video.title,
                 text: `Check out this video: ${video.title}`,
-                url: url,
+                url
             }).catch(() => { });
         } else {
             navigator.clipboard.writeText(url);
@@ -169,87 +160,68 @@ const VideoPage = () => {
         }
     };
 
-    const handleShareWhatsApp = () => {
-        const url = window.location.href;
-        const text = `Check out: ${video.title}`;
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text + ' - ' + url)}`;
-        window.open(whatsappUrl, '_blank');
-    };
-
     const handleDelete = async () => {
-        if (!window.confirm('Are you sure you want to delete this video?')) {
-            return;
-        }
-
+        if (!window.confirm('Delete this video?')) return;
         try {
             await api.delete(`/videos/${id}`);
-            toast.success('Video deleted successfully');
+            toast.success('Video deleted');
             navigate('/');
-        } catch (error) {
+        } catch {
             toast.error('Failed to delete video');
         }
     };
 
-    if (loading) {
-        return <Loading />;
-    }
+    if (loading) return <Loading />;
+    if (!video) return null;
 
-    if (!video) {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <p className="text-gray-400">Video not found</p>
-            </div>
-        );
-    }
-
-    const isOwner = user?.id === video.uploadedBy?.id;
+    const currentUserId = user?.id || user?._id;
+    const uploadedById = video.uploadedBy?._id || video.uploadedBy?.id;
+    const isOwner = currentUserId && uploadedById && currentUserId.toString() === uploadedById.toString();
 
     return (
-        <div className="max-w-[1920px] mx-auto px-0 sm:px-4 lg:px-6 py-0 sm:py-6 pb-3 animate-in fade-in">
-            <div className="flex flex-col xl:flex-row gap-6">
-                {/* Main Video Section */}
+        <div className="max-w-[1800px] mx-auto px-0 sm:px-6 py-6">
+            <div className="flex flex-col xl:flex-row gap-8">
+
+                {/* MAIN */}
                 <div className="flex-1 min-w-0">
-                    {/* Video Player */}
-                    <div className="sm:rounded-2xl overflow-hidden bg-black shadow-2xl">
+                    <div className="rounded-none sm:rounded-xl overflow-hidden bg-black">
                         <VideoPlayer url={video.videoUrl} />
                     </div>
 
-                    {/* Video Info Container */}
-                    <div className="px-4 sm:px-0 mt-4 space-y-4">
-                        {/* Title */}
-                        <h1 className="text-lg sm:text-xl lg:text-2xl font-bold leading-tight">
+                    <div className="px-4 sm:px-0 mt-6 space-y-5">
+                        <h1 className="text-xl sm:text-2xl font-semibold leading-snug">
                             {video.title}
                         </h1>
 
-                        {/* Channel Info & Actions Row */}
+                        {/* Channel & Actions */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            {/* Channel Info */}
                             <div className="flex items-center gap-3">
-                                <Link to={`/channel/${video.uploadedBy.id}`} className="flex-shrink-0">
+                                <Link to={`/channel/${video.uploadedBy?._id || video.uploadedBy?.id || video.uploadedBy}`}>
                                     <img
                                         src={video.uploadedBy.profilePicture}
                                         alt={video.uploadedBy.channelName}
-                                        className="w-10 h-10 rounded-full object-cover border-2 border-white/10 hover:border-white/30 smooth-transition"
-                                        onError={(e) => { e.target.src = 'https://via.placeholder.com/48'; }}
+                                        className="w-10 h-10 rounded-full object-cover"
                                     />
                                 </Link>
-                                <div className="flex-1 min-w-0">
+                                <div>
                                     <Link
-                                        to={`/channel/${video.uploadedBy.id}`}
-                                        className="font-bold text-[15px] hover:text-gray-300 smooth-transition block truncate"
+                                        to={`/channel/${video.uploadedBy?._id || video.uploadedBy?.id || video.uploadedBy}`}
+                                        className="font-medium hover:underline"
                                     >
                                         {video.uploadedBy.channelName}
                                     </Link>
-                                    <p className="text-xs text-gray-400 font-medium">
+                                    <p className="text-xs text-gray-400">
                                         {formatSubscribers(subscribersCount)}
                                     </p>
                                 </div>
+
                                 {!isOwner && (
                                     <button
                                         onClick={handleSubscribe}
-                                        className={`px-5 py-2 rounded-full font-bold text-sm smooth-transition active:scale-95 ${isSubscribed
-                                            ? 'bg-white/10 hover:bg-white/15 text-white'
-                                            : 'bg-white text-black hover:bg-gray-200'
+                                        className={`ml-2 px-4 py-1.5 rounded-full text-sm font-medium
+                                        ${isSubscribed
+                                                ? 'bg-neutral-800 text-white'
+                                                : 'bg-white text-black'
                                             }`}
                                     >
                                         {isSubscribed ? 'Subscribed' : 'Subscribe'}
@@ -257,109 +229,88 @@ const VideoPage = () => {
                                 )}
                             </div>
 
-                            {/* Action Buttons */}
                             <div className="flex items-center gap-2 flex-wrap">
-                                {/* Like/Dislike */}
-                                <div className="flex items-center glass rounded-full overflow-hidden">
+                                <div className="flex items-center bg-neutral-800 rounded-full">
                                     <button
                                         onClick={handleLike}
-                                        className={`flex items-center gap-2 px-4 py-2 smooth-transition ${isLiked ? 'text-white' : 'text-gray-300 hover:bg-white/5'
-                                            }`}
+                                        className="px-4 py-2 flex items-center gap-2 hover:bg-neutral-700 rounded-l-full"
                                     >
                                         <ThumbsUp size={18} fill={isLiked ? 'white' : 'none'} />
-                                        <span className="text-sm font-bold">{likesCount}</span>
+                                        <span className="text-sm">{likesCount}</span>
                                     </button>
-                                    <div className="w-px h-6 bg-white/10" />
                                     <button
                                         onClick={handleDislike}
-                                        className={`flex items-center px-4 py-2 smooth-transition ${isDisliked ? 'text-white' : 'text-gray-300 hover:bg-white/5'
-                                            }`}
+                                        className="px-4 py-2 hover:bg-neutral-700 rounded-r-full"
                                     >
                                         <ThumbsDown size={18} fill={isDisliked ? 'white' : 'none'} />
                                     </button>
                                 </div>
 
-                                {/* Share */}
                                 <button
                                     onClick={handleShare}
-                                    className="flex items-center gap-2 px-4 py-2 glass hover:bg-white/10 rounded-full smooth-transition active:scale-95 font-semibold text-sm"
+                                    className="px-4 py-2 bg-neutral-800 rounded-full text-sm hover:bg-neutral-700"
                                 >
                                     <Share2 size={18} />
-                                    <span className="hidden sm:inline">Share</span>
                                 </button>
 
-                                {/* Add to Playlist Button */}
                                 {isAuthenticated && (
                                     <button
                                         onClick={() => setShowAddToPlaylist(true)}
-                                        className="flex items-center gap-2 px-4 py-2 glass hover:bg-white/10 border border-white/5 rounded-full smooth-transition active:scale-95 font-semibold text-sm"
+                                        className="px-4 py-2 bg-neutral-800 rounded-full text-sm hover:bg-neutral-700"
                                     >
-                                        <ListPlus size={19} />
-                                        <span className="hidden sm:inline">Save</span>
+                                        <ListPlus size={18} />
                                     </button>
                                 )}
 
-                                {/* Delete (Owner Only) */}
                                 {isOwner && (
                                     <button
                                         onClick={handleDelete}
-                                        className="flex items-center gap-2 px-4 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-500 rounded-full smooth-transition active:scale-95 font-semibold text-sm border border-red-600/20"
+                                        className="px-4 py-2 bg-neutral-800 text-red-400 rounded-full hover:bg-neutral-700"
                                     >
                                         <Trash2 size={18} />
-                                        <span className="hidden sm:inline">Delete</span>
                                     </button>
                                 )}
                             </div>
                         </div>
 
-                        {/* Description Box */}
-                        <div className="glass-card rounded-2xl p-4 hover:bg-white/[0.06] smooth-transition">
-                            <div className="flex items-center gap-4 text-sm font-semibold mb-3">
-                                <div className="flex items-center gap-1.5">
-                                    <Eye size={16} className="text-gray-400" />
-                                    <span>{formatViews(video.views)}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Calendar size={16} className="text-gray-400" />
-                                    <span>{formatDate(video.createdAt)}</span>
-                                </div>
+                        {/* Description */}
+                        <div className="bg-neutral-900 rounded-xl p-4">
+                            <div className="flex gap-6 text-sm text-gray-400 mb-2">
+                                <span className="flex items-center gap-1">
+                                    <Eye size={15} /> {formatViews(video.views)}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                    <Calendar size={15} /> {formatDate(video.createdAt)}
+                                </span>
                             </div>
-                            <p className={`text-sm leading-relaxed whitespace-pre-wrap text-gray-300 ${!showFullDescription ? 'line-clamp-3' : ''
-                                }`}>
+
+                            <p className={`text-sm leading-relaxed
+                            ${!showFullDescription && 'line-clamp-3'}`}>
                                 {video.description || 'No description available'}
                             </p>
-                            {video.description && video.description.length > 150 && (
+
+                            {video.description?.length > 150 && (
                                 <button
                                     onClick={() => setShowFullDescription(!showFullDescription)}
-                                    className="text-sm font-semibold text-gray-400 hover:text-white mt-2 smooth-transition"
+                                    className="mt-2 text-sm text-gray-400 hover:text-white"
                                 >
                                     {showFullDescription ? 'Show less' : 'Show more'}
                                 </button>
                             )}
                         </div>
 
-                        {/* Comments */}
-                        <div className="pt-6">
-                            <CommentSection videoId={id} />
-                        </div>
+                        <CommentSection videoId={id} />
                     </div>
                 </div>
 
-                {/* Sidebar */}
-                <div className="w-full xl:w-[400px] px-4 sm:px-0">
-                    <h3 className="font-bold text-lg mb-4">Suggested videos</h3>
-                    <div className="glass-card rounded-2xl p-8 text-center">
-                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
-                            <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                        <p className="text-gray-400 font-medium">Curating your feed...</p>
-                        <p className="text-xs text-gray-600 mt-1">Check back soon!</p>
+                {/* SIDEBAR */}
+                <div className="w-full xl:w-[380px] px-4 sm:px-0">
+                    <div className="bg-neutral-900 rounded-xl p-3">
+                        <RecommendedVideos currentVideoId={id} limit={15} />
                     </div>
                 </div>
             </div>
-            {/* Add to Playlist Modal */}
+
             <AddToPlaylistModal
                 isOpen={showAddToPlaylist}
                 onClose={() => setShowAddToPlaylist(false)}

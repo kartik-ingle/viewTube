@@ -65,7 +65,7 @@ const EditProfile = () => {
             toast.success('Profile updated successfully!');
 
             // Use the ID from the response for redirection to avoid stale state issues
-            navigate(`/channel/${updatedUser.id || updatedUser._id}`);
+            navigate(`/channel/${updatedUser.id || updatedUser._id || updatedUser}`);
         } catch (error) {
             console.error('Update error:', error);
             toast.error('Failed to update profile');
@@ -179,7 +179,7 @@ const EditProfile = () => {
                     </button>
                     <button
                         type="button"
-                        onClick={() => navigate(`/channel/${user.id}`)}
+                        onClick={() => navigate(`/channel/${user?._id || user?.id}`)}
                         disabled={loading}
                         className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                     >

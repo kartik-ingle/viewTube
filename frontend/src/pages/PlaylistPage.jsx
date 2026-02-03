@@ -112,7 +112,9 @@ const PlaylistPage = () => {
         );
     }
 
-    const isOwner = user?.id === playlist.userId?.id;
+    const currentUserId = user?._id || user?.id;
+    const playlistUserId = playlist.userId?._id || playlist.userId?.id;
+    const isOwner = currentUserId && playlistUserId && currentUserId.toString() === playlistUserId.toString();
     const thumbnailUrl = playlist.thumbnailUrl || playlist.videos?.[0]?.thumbnailUrl || 'https://via.placeholder.com/400x225?text=Empty+Playlist';
 
     return (
@@ -198,7 +200,7 @@ const PlaylistPage = () => {
                                     <h1 className="text-2xl font-bold mb-2">{playlist.name}</h1>
 
                                     <Link
-                                        to={`/channel/${playlist.userId?.id}`}
+                                        to={`/channel/${playlist.userId?._id || playlist.userId?.id}`}
                                         className="flex items-center gap-2 text-gray-400 hover:text-white smooth-transition mb-4"
                                     >
                                         <img
@@ -303,7 +305,7 @@ const PlaylistPage = () => {
 
                                         {/* Thumbnail */}
                                         <Link
-                                            to={`/video/${video._id}?playlist=${id}`}
+                                            to={`/video/${video._id || video.id}?playlist=${id}`}
                                             className="flex-shrink-0"
                                         >
                                             <div className="relative w-40 aspect-video rounded-lg overflow-hidden bg-black">
@@ -326,14 +328,17 @@ const PlaylistPage = () => {
                                         {/* Info */}
                                         <div className="flex-1 min-w-0">
                                             <Link
-                                                to={`/video/${video._id}?playlist=${id}`}
+                                                to={`/video/${video._id || video.id}?playlist=${id}`}
                                                 className="font-semibold text-sm line-clamp-2 hover:text-gray-300 smooth-transition"
                                             >
                                                 {video.title}
                                             </Link>
-                                            <p className="text-xs text-gray-400 mt-1">
+                                            <Link
+                                                to={`/channel/${video.uploadedBy?._id || video.uploadedBy?.id || video.uploadedBy}`}
+                                                className="text-xs text-gray-400 mt-1 hover:text-white smooth-transition block"
+                                            >
                                                 {video.uploadedBy?.channelName || 'Unknown'}
-                                            </p>
+                                            </Link>
                                             <p className="text-xs text-gray-500 mt-0.5">
                                                 {video.views?.toLocaleString() || 0} views
                                             </p>

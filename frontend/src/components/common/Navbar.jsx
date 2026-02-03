@@ -116,7 +116,7 @@ const Navbar = ({ onMenuClick }) => {
                                                     {/* Menu Items */}
                                                     <div className="py-2">
                                                         <Link
-                                                            to={`/channel/${user?.id}`}
+                                                            to={`/channel/${user?._id || user?.id}`}
                                                             onClick={() => setProfileMenuOpen(false)}
                                                             className="flex items-center gap-3 px-4 py-3 hover:bg-white/10 smooth-transition"
                                                         >
@@ -245,7 +245,7 @@ const Navbar = ({ onMenuClick }) => {
                                 <>
                                     {/* Profile Section */}
                                     <Link
-                                        to={`/channel/${user?.id}`}
+                                        to={`/channel/${user?._id || user?.id}`}
                                         onClick={() => setMobileMenuOpen(false)}
                                         className="flex items-center gap-3 p-3 glass hover:bg-white/10 rounded-xl smooth-transition"
                                     >

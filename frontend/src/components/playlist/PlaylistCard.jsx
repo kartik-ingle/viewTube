@@ -9,7 +9,7 @@ const PlaylistCard = ({ playlist }) => {
     const creatorUsername = typeof playlist.userId === 'object' ? playlist.userId?.username : 'Unknown';
 
     return (
-        <Link to={`/playlist/${playlist._id}`} className="group">
+        <Link to={`/playlist/${playlist._id || playlist.id}`} className="group">
             <div className="relative aspect-video rounded-xl overflow-hidden bg-gradient-to-br from-gray-900 to-black video-card-shadow">
                 <img
                     src={thumbnailUrl}

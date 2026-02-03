@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ThumbsUp, Trash2 } from 'lucide-react';
 import { formatDate } from '../../utils/formatDate';
 import { useAuth } from '../../context/AuthContext';
@@ -35,26 +36,33 @@ const Comment = ({ comment, onDelete, onLike }) => {
         }
     };
 
-    const isOwner = user?.id === comment.userId?._id;
+    const channelId = comment.userId?._id || comment.userId?.id;
+    const currentUserId = user?._id || user?.id;
+    const isOwner = currentUserId && channelId && currentUserId.toString() === channelId.toString();
 
     return (
         <div className="flex gap-3 py-3">
             {/* Avatar */}
-            <img
-                src={comment.userId?.profilePicture || 'https://via.placeholder.com/40'}
-                alt={comment.userId?.username}
-                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/40';
-                }}
-            />
+            <Link to={channelId ? `/channel/${channelId}` : '#'}>
+                <img
+                    src={comment.userId?.profilePicture || 'https://via.placeholder.com/40'}
+                    alt={comment.userId?.username}
+                    className="w-10 h-10 rounded-full object-cover flex-shrink-0 hover:brightness-110 smooth-transition"
+                    onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/40';
+                    }}
+                />
+            </Link>
 
             {/* Comment Content */}
             <div className="flex-1">
                 <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm">
+                    <Link
+                        to={channelId ? `/channel/${channelId}` : '#'}
+                        className="font-semibold text-sm hover:underline"
+                    >
                         {comment.userId?.username || 'Unknown User'}
-                    </span>
+                    </Link>
                     <span className="text-xs text-gray-400">
                         {formatDate(comment.createdAt)}
                     </span>

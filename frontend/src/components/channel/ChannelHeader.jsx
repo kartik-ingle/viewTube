@@ -17,7 +17,7 @@ const ChannelHeader = ({ channel, videosCount, onSubscribeChange }) => {
         channel?.subscribers?.length || 0
     );
 
-    const isOwner = user?.id === channel?._id;
+    const isOwner = user?.id === (channel?._id || channel?.id);
 
     const handleSubscribe = async () => {
         if (!isAuthenticated) {
@@ -27,7 +27,7 @@ const ChannelHeader = ({ channel, videosCount, onSubscribeChange }) => {
         }
 
         try {
-            await api.put(`/users/${channel._id}/subscribe`);
+            await api.put(`/users/${channel._id || channel.id}/subscribe`);
 
             if (isSubscribed) {
                 setSubscribersCount(subscribersCount - 1);
@@ -119,8 +119,8 @@ const ChannelHeader = ({ channel, videosCount, onSubscribeChange }) => {
                                     <button
                                         onClick={handleSubscribe}
                                         className={`px-8 py-2.5 rounded-full font-semibold transition-colors ${isSubscribed
-                                                ? 'bg-hover hover:bg-gray-600 text-white'
-                                                : 'bg-primary hover:bg-red-700 text-white'
+                                            ? 'bg-hover hover:bg-gray-600 text-white'
+                                            : 'bg-primary hover:bg-red-700 text-white'
                                             }`}
                                     >
                                         {isSubscribed ? 'Subscribed' : 'Subscribe'}

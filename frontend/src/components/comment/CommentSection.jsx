@@ -31,20 +31,42 @@ const CommentSection = ({ videoId }) => {
             return;
         }
 
-        setLoading(true);
+        const tempId = Date.now().toString();
+        const textToSubmit = newComment;
+        const tempComment = {
+            _id: tempId,
+            text: textToSubmit,
+            userId: {
+                ...user,
+                _id: user.id || user._id // Ensure _id is present even if user only has id
+            },
+            createdAt: new Date().toISOString(),
+            likes: [],
+            replies: []
+        };
+
+        // Optimistic update
+        setComments([tempComment, ...comments]);
+        setNewComment('');
+
         try {
             const response = await api.post('/comments', {
                 videoId,
-                text: newComment,
+                text: textToSubmit,
             });
 
-            setComments([response.data.comment, ...comments]);
-            setNewComment('');
+            setComments((prevComments) =>
+                prevComments.map((c) =>
+                    c._id === tempId ? response.data.comment : c
+                )
+            );
             toast.success('Comment added!');
         } catch (error) {
+            setComments((prevComments) =>
+                prevComments.filter((c) => c._id !== tempId)
+            );
             toast.error('Failed to add comment');
-        } finally {
-            setLoading(false);
+            setNewComment(textToSubmit);
         }
     };
 

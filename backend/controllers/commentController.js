@@ -1,5 +1,5 @@
 const Comment = require('../models/Comment');
-const createNotification = require('../utils/notifications');
+const createNotification = require('../utils/notifications').createNotification;
 const Video = require('../models/Video');
 
 // Add Comment

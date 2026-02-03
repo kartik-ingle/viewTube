@@ -405,3 +405,19 @@ button,
   background: linear-gradient(to right, #1f2937 4%, #374151 25%, #1f2937 36%);
   background-size: 1000px 100%;
 }
+
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}

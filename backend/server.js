@@ -4,6 +4,8 @@ const dotenv = require('dotenv');
 const morgan = require('morgan');
 const connectDB = require('./config/db');
 const notificationRoutes = require('./routes/notificationRoutes');
+const recommendationRoutes = require('./routes/recommendationRoutes');
+const appUsageRoutes = require('./routes/appUsageRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -47,6 +49,8 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/history', historyRoutes);
 app.use('/api/playlists', playlistRoutes);
+app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/app-usage', appUsageRoutes);
 
 // Test route
 app.get('/', (req, res) => {

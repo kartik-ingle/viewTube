@@ -115,7 +115,7 @@ const Channel = () => {
         );
     }
 
-    const isOwner = user?.id === channel._id;
+    const isOwner = user?.id === (channel._id || channel.id);
 
     return (
         <div className="animate-in fade-in pb-3">

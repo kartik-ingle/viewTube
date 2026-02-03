@@ -1,10 +1,13 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, TrendingUp, History, Video, ListVideo, ChevronLeft, ChevronRight, Sparkles, Clock } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../utils/api';
 
-const Sidebar = ({ isOpen, onClose, onToggle }) => {
+const Sidebar = ({ isOpen, onClose }) => {
     const location = useLocation();
     const { isAuthenticated, user } = useAuth();
+    const [watchTime, setWatchTime] = useState({ formatted: '0h 0m' });
 
     const menuItems = [
         { label: 'Home', path: '/', icon: Home, badge: null },
@@ -14,8 +17,27 @@ const Sidebar = ({ isOpen, onClose, onToggle }) => {
     const authMenuItems = [
         { label: 'History', path: '/history', icon: History },
         { label: 'Playlists', path: '/playlists', icon: ListVideo },
-        { label: 'Your Videos', path: `/channel/${user?.id}`, icon: Video },
+        { label: 'Your Videos', path: `/channel/${user?._id || user?.id}`, icon: Video },
     ];
+
+    const fetchAppUsage = async () => {
+        try {
+            const response = await api.get('/app-usage/today');
+            setWatchTime(response.data);
+        } catch (error) {
+            console.error('Failed to fetch app usage:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetchAppUsage();
+
+            // Refresh app usage every 30 seconds
+            const interval = setInterval(fetchAppUsage, 30000);
+            return () => clearInterval(interval);
+        }
+    }, [isAuthenticated]);
 
     return (
         <>
@@ -29,7 +51,7 @@ const Sidebar = ({ isOpen, onClose, onToggle }) => {
 
             {/* Toggle Button - Desktop Only (Outside sidebar) */}
             <button
-                onClick={onToggle}
+                onClick={onClose}
                 className={`hidden lg:flex fixed top-20 w-8 h-8 bg-gradient-to-br from-red-600 to-pink-600 
                     rounded-full items-center justify-center shadow-lg hover:shadow-red-500/50 
                     hover:scale-110 smooth-transition z-50 group transition-all duration-300 ease-out
@@ -209,8 +231,8 @@ const Sidebar = ({ isOpen, onClose, onToggle }) => {
                     {/* Spacer */}
                     <div className="flex-1" />
 
-                    {/* Footer */}
-                    {isOpen && (
+                    {/* Footer - App Usage Time */}
+                    {isOpen && isAuthenticated && (
                         <div className="mt-4 pt-4 border-t border-white/10 px-4 animate-in fade-in slide-in-from-bottom duration-300">
                             <div className="flex items-center gap-3 p-3 glass rounded-xl hover:bg-white/5 smooth-transition cursor-pointer group">
                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600/20 to-pink-600/20 flex items-center justify-center group-hover:scale-105 smooth-transition">
@@ -218,10 +240,10 @@ const Sidebar = ({ isOpen, onClose, onToggle }) => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">
-                                        Watch Time
+                                        Screen Time Today
                                     </p>
                                     <p className="text-sm font-bold text-white">
-                                        2h 34m today
+                                        {watchTime.formatted}
                                     </p>
                                 </div>
                             </div>

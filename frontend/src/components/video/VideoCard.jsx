@@ -1,14 +1,19 @@
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { formatDate } from '../../utils/formatDate';
 import { formatViews, formatDuration } from '../../utils/formatViews';
 import { Play } from 'lucide-react';
 
 const VideoCard = ({ video }) => {
+    const navigate = useNavigate();
     if (!video) return null;
 
+    const handleCardClick = () => {
+        navigate(`/video/${video._id || video.id}`);
+    };
+
     return (
-        <Link
-            to={`/video/${video._id}`}
+        <div
+            onClick={handleCardClick}
             className="flex flex-col gap-3 group cursor-pointer"
         >
             {/* Thumbnail Container */}
@@ -45,7 +50,7 @@ const VideoCard = ({ video }) => {
             <div className="flex gap-3 px-0.5">
                 {/* Channel Avatar */}
                 <Link
-                    to={`/channel/${video.uploadedBy?.id}`}
+                    to={`/channel/${video.uploadedBy?._id || video.uploadedBy?.id || video.uploadedBy}`}
                     className="flex-shrink-0"
                     onClick={(e) => e.stopPropagation()}
                 >
@@ -65,7 +70,7 @@ const VideoCard = ({ video }) => {
                     </h3>
 
                     <Link
-                        to={`/channel/${video.uploadedBy?.id}`}
+                        to={`/channel/${video.uploadedBy?._id || video.uploadedBy?.id || video.uploadedBy}`}
                         className="text-[13px] text-gray-400 hover:text-white smooth-transition truncate"
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -79,7 +84,7 @@ const VideoCard = ({ video }) => {
                     </div>
                 </div>
             </div>
-        </Link>
+        </div>
     );
 };
 
